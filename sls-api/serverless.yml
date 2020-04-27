@@ -49,7 +49,7 @@ functions:
       handler: handler.getPost
       events:
       - http:
-          path: /posts/{id}
+          path: /post/{id}
           method: get
   updatePost:
       handler: handler.updatePost
