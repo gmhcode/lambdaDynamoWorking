@@ -20,7 +20,15 @@ function sortByDate(a, b) {
   }
 }
 
-// Create a post
+/*
+..######..########..########....###....########.########....########...#######...######..########
+.##....##.##.....##.##.........##.##......##....##..........##.....##.##.....##.##....##....##...
+.##.......##.....##.##........##...##.....##....##..........##.....##.##.....##.##..........##...
+.##.......########..######...##.....##....##....######......########..##.....##..######.....##...
+.##.......##...##...##.......#########....##....##..........##........##.....##.......##....##...
+.##....##.##....##..##.......##.....##....##....##..........##........##.....##.##....##....##...
+..######..##.....##.########.##.....##....##....########....##.........#######...######.....##...
+*/
 module.exports.createPost = (event, context, callback) => {
   const reqBody = JSON.parse(event.body)
 
@@ -29,11 +37,12 @@ module.exports.createPost = (event, context, callback) => {
   }
 
   const post = {
-    id: uuid(),
+    id: reqBody.id,
     createdAt: new Date().toISOString(),
     userId: 1,
     title: reqBody.title,
-    body: reqBody.body
+    body: reqBody.body,
+    name: reqBody.name
   }
 
   return db.put({
@@ -126,25 +135,25 @@ module.exports.getPost = (event, context, callback) => {
 module.exports.updatePost = (event, context, callback) => {
   const id = event.pathParameters.id
   const body = JSON.parse(event.body)
-  const paramName = body.paramName
-  const paramValue = body.paramValue
-
+  const theBody = body.body
+  const title = body.title
   const params = {
     Key: {
       id: id
     },
     TableName: postsTable,
     ConditionExpression: 'attribute_exists(id)',
-    UpdateExpression: 'set ' + paramName + ' = :v',
+    UpdateExpression: 'set body = :b, title=:t',
     ExpressionAttributeValues: {
-      ':v': paramValue
+      ':b': theBody,
+      ":t": title
     },
-    ReturnValue: 'ALL_NEW'
+    ReturnValue: "UPDATED_NEW"
   }
   return db.update(params)
     .promise()
     .then(res => {
-      callback(null, response(200, res))
+      callback(null, response(200, body))
     }).catch(err => callback(null, response(err.statusCode, err)))
 }
 
@@ -188,3 +197,45 @@ module.exports.deletePost = (event, context, callback) => {
 //   // Use this code if you don't use the http event with the LAMBDA-PROXY integration
 //   // return { message: 'Go Serverless v1.0! Your function executed successfully!', event };
 // };
+
+
+
+/*
+..######...######.....###....##....##
+.##....##.##....##...##.##...###...##
+.##.......##........##...##..####..##
+..######..##.......##.....##.##.##.##
+.......##.##.......#########.##..####
+.##....##.##....##.##.....##.##...###
+..######...######..##.....##.##....##
+*/
+// module.exports.getPost = (event, context, callback) => {
+//   const id = event.pathParameters.id;
+
+//   // const params = {
+//   //   Key: {
+//   //     id: id
+//   //   },
+//   //   TableName: postsTable
+//   // }
+//   var params = {
+//     TableName: postsTable,
+//     ProjectionExpression: "title",
+//     FilterExpression: "title between :letter1 and :letter2",
+//     // ExpressionAttributeNames: {
+//     //   "#yr": "year"
+//     // },
+//     ExpressionAttributeValues: {
+//       // ":yyyy": 1992,
+//       ":letter1": "5",
+//       ":letter2": "7"
+//     }
+//   };
+//   return db.scan(params).promise().then(res => {
+
+//     if (res.Item) callback(null, response(200, res.Item))
+//     // { error: 'Post Not Found' }
+//     else callback(null, response(404, res))
+//   })
+//     .catch(err => callback(null, response(err.statusCode, err)))
+// }
